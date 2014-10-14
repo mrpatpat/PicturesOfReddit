@@ -20,13 +20,30 @@ import de.curlse.mrpatpat.picturesofreddit.R;
 import de.curlse.mrpatpat.picturesofreddit.api.Post;
 
 public class RedditGridAdapter extends ArrayAdapter<Post> {
+
+    /**
+     * layout inflater
+     */
     private LayoutInflater mInflater;
 
-    public RedditGridAdapter(Context context, int textViewResourceId, List<Post> objects) {
-        super(context, textViewResourceId, objects);
+    /**
+     * constructs a new RedditGridAdapter
+     * @param context
+     * @param textViewResourceId
+     * @param posts the posts
+     */
+    public RedditGridAdapter(Context context, int textViewResourceId, List<Post> posts) {
+        super(context, textViewResourceId, posts);
         mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
+    /**
+     * get the view of a single gridlist entry
+     * @param position
+     * @param convertView
+     * @param parent
+     * @return the view
+     */
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         View view = convertView;
@@ -59,7 +76,9 @@ public class RedditGridAdapter extends ArrayAdapter<Post> {
         return view;
     }
 
-    // Holder class used to efficiently recycle view positions
+    /**
+     * Holder class for efficiency
+     */
     private static final class Holder {
         public ImageView thumbnail;
     }

@@ -152,8 +152,15 @@ public class ListingActivity extends Activity implements Callback<Listing>, Adap
         this.isDownloading = false;
     }
 
+    /**
+     * called when an grid cell is clicked
+     * @param adapterView adapterView
+     * @param view view
+     * @param pos position in the list
+     * @param l
+     */
     @Override
-    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+    public void onItemClick(AdapterView<?> adapterView, View view, int pos, long l) {
 
     }
 
