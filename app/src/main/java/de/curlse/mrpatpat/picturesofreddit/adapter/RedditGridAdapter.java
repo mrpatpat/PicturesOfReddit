@@ -28,9 +28,10 @@ public class RedditGridAdapter extends ArrayAdapter<Post> {
 
     /**
      * constructs a new RedditGridAdapter
+     *
      * @param context
      * @param textViewResourceId
-     * @param posts the posts
+     * @param posts              the posts
      */
     public RedditGridAdapter(Context context, int textViewResourceId, List<Post> posts) {
         super(context, textViewResourceId, posts);
@@ -39,6 +40,7 @@ public class RedditGridAdapter extends ArrayAdapter<Post> {
 
     /**
      * get the view of a single gridlist entry
+     *
      * @param position
      * @param convertView
      * @param parent
@@ -65,8 +67,7 @@ public class RedditGridAdapter extends ArrayAdapter<Post> {
         Post post = getItem(position);
 
         Glide.with(getContext())
-                .load(post.getUrl())
-                .placeholder(R.drawable.loader)
+                .load(post.getThumbnail()).centerCrop().placeholder(R.drawable.loader)
                 .into(holder.thumbnail);
 
         return view;

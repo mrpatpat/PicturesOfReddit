@@ -1,12 +1,11 @@
 package de.curlse.mrpatpat.picturesofreddit.api;
 
-import java.util.List;
-
 import de.curlse.mrpatpat.picturesofreddit.model.Listing;
 import retrofit.Callback;
 import retrofit.RestAdapter;
 import retrofit.http.GET;
 import retrofit.http.Path;
+import retrofit.http.Query;
 
 /**
  * Created by Adrian Endrich on 14.10.14.
@@ -29,8 +28,8 @@ public class RedditClient {
         @GET("/{subreddit}/{section}.json")
         void getPosts(@Path("subreddit") String subreddit, @Path("section") String section, Callback<Listing> callback);
 
-        @GET("/{subreddit}/{section}?after={after}.json")
-        void getPostsAfter(@Path("subreddit") String subreddit, @Path("section") String section,@Path("after") String after,  Callback<Listing> callback);
+        @GET("/{subreddit}/{section}.json")
+        void getPostsAfter(@Path("subreddit") String subreddit, @Path("section") String section, @Query("after") String after, Callback<Listing> callback);
     }
 
 }

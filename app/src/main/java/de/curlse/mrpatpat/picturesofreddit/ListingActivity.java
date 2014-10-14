@@ -64,6 +64,7 @@ public class ListingActivity extends Activity implements Callback<Listing>, Adap
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_listing);
         bindAdapter();
+        load("earthporn", "hot");
     }
 
     /**
@@ -106,10 +107,7 @@ public class ListingActivity extends Activity implements Callback<Listing>, Adap
      * refreshes results
      */
     private void refresh() {
-        if(!isDownloading) {
-            this.isDownloading = true;
-            RedditClient.getRedditClient().getPosts(subreddit, section, this);
-        }
+        load(subreddit, section);
     }
 
     /**

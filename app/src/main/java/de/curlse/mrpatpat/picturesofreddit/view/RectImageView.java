@@ -35,4 +35,5 @@ public class RectImageView extends ImageView {
                                  final int oldh) {
         super.onSizeChanged(w, w, oldw, oldh);
     }
+
 }
