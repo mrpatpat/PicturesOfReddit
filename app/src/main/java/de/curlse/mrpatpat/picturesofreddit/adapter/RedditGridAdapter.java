@@ -62,15 +62,11 @@ public class RedditGridAdapter extends ArrayAdapter<Post> {
             // Just get our existing holder
             holder = (Holder) view.getTag();
         }
-
-        // Populate via the holder for speed
         Post post = getItem(position);
 
-        // Populate the item contents
-
-        // Load the screen cap image on a background thread
         Glide.with(getContext())
                 .load(post.getUrl())
+                .placeholder(R.drawable.loader)
                 .into(holder.thumbnail);
 
         return view;
