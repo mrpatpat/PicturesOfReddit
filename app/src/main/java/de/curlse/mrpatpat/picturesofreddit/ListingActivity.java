@@ -121,6 +121,8 @@ public class ListingActivity extends Activity implements Callback<Listing> {
 
         @Override
         public void onScrollStateChanged(AbsListView view, int scrollState) {
+
+
         }
     }
 }
