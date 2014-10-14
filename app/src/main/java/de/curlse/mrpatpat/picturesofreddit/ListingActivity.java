@@ -2,10 +2,12 @@ package de.curlse.mrpatpat.picturesofreddit;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,47 +22,104 @@ import retrofit.RetrofitError;
 import retrofit.client.Response;
 
 
-public class ListingActivity extends Activity implements Callback<Listing> {
+public class ListingActivity extends Activity implements Callback<Listing>, AdapterView.OnItemClickListener {
 
+    /**
+     * List of all Posts
+     */
     private List<Post> posts;
 
-    private RedditGridAdapter mAdapter;
-    private boolean mIsDownloadInProgress = false;
-    private Post last;
+    /**
+     * Adapter to bind posts to grid
+     */
+    private RedditGridAdapter adapter;
 
+    /**
+     * indicates wether a download is in progress
+     */
+    private boolean isDownloading = false;
+
+    /**
+     * the last post
+     */
+    private Post lastPost;
+
+    /**
+     * current subreddit
+     */
+    private String subreddit;
+
+    /**
+     * current section
+     */
+    private String section;
+
+    /**
+     * called on activity creation
+     *
+     * @param savedInstanceState saved Instance
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_listing);
-
-
-        // Create the array adapter and bind it to the gridview
-        posts = new ArrayList<Post>();
-        GridView gridView = (GridView) findViewById(R.id.grid);
-        gridView.setOnScrollListener(new EndlessScrollListener());
-        mAdapter = new RedditGridAdapter(this, 0, posts);
-        gridView.setAdapter(mAdapter);
-
-        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-            }
-        });
-
-        downloadData();
+        bindAdapter();
     }
 
-    private void downloadData() {
-        if (last == null) {
-            RedditClient.getRedditClient().getPosts("earthporn", "hot", this);
-        } else {
-            RedditClient.getRedditClient().getPostsAfter("earthporn", "hot",this.last.getName(), this);
+    /**
+     * binds the post list data to the gridview through an adapter
+     */
+    private void bindAdapter() {
+        if (posts == null)
+            posts = new ArrayList<Post>();
+
+        GridView gridView = (GridView) findViewById(R.id.gridView);
+        gridView.setOnScrollListener(new EndlessScrollListener());
+        adapter = new RedditGridAdapter(this, 0, posts);
+        gridView.setAdapter(adapter);
+        gridView.setOnItemClickListener(this);
+    }
+
+    /**
+     * loads a subreddit and section
+     */
+    private void load(String subreddit, String section) {
+        if(!isDownloading) {
+            this.isDownloading = true;
+            this.subreddit = subreddit;
+            this.section = section;
+            RedditClient.getRedditClient().getPosts(subreddit, section, this);
         }
     }
 
+    /**
+     * loads more results
+     */
+    private void loadMore() {
+        if(!isDownloading) {
+            this.isDownloading = true;
+            RedditClient.getRedditClient().getPostsAfter(subreddit, section, lastPost.getName(), this);
+        }
+    }
+
+    /**
+     * refreshes results
+     */
+    private void refresh() {
+        if(!isDownloading) {
+            this.isDownloading = true;
+            RedditClient.getRedditClient().getPosts(subreddit, section, this);
+        }
+    }
+
+    /**
+     * called when the request results are ready
+     * @param listing the result
+     * @param response the response
+     */
     @Override
     public void success(Listing listing, Response response) {
+
         List<Child> children = listing.getData().getChildren();
         List<Post> posts = new ArrayList<Post>();
 
@@ -73,16 +132,28 @@ public class ListingActivity extends Activity implements Callback<Listing> {
                 posts.add(p);
             }
         }
-        // Add the found streams to our array to render
-        this.posts.addAll(posts);
-        this.last = this.posts.get(this.posts.size() - 1);
 
-        // Tell the adapter that it needs to rerender
-        mAdapter.notifyDataSetChanged();
+        this.posts.addAll(posts);
+        this.lastPost = this.posts.get(this.posts.size() - 1);
+
+        this.isDownloading = false;
+
+        adapter.notifyDataSetChanged();
+    }
+
+    /**
+     * called when the API Request failed.
+     * @param error the error
+     */
+    @Override
+    public void failure(RetrofitError error) {
+        Toast.makeText(this,"Api Error",Toast.LENGTH_LONG).show();
+        Log.e("RETROFIT",error.getMessage());
+        this.isDownloading = false;
     }
 
     @Override
-    public void failure(RetrofitError error) {
+    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
 
     }
 
@@ -110,11 +181,11 @@ public class ListingActivity extends Activity implements Callback<Listing> {
                     currentPage++;
                 }
             }
-            if ( !loading &&
-            (totalItemCount - visibleItemCount) <= (firstVisibleItem + visibleThreshold)){
+            if (!loading &&
+                    (totalItemCount - visibleItemCount) <= (firstVisibleItem + visibleThreshold)) {
                 // I load the next page of gigs using a background task,
                 // but you can call any function here.
-                downloadData();
+                loadMore();
                 loading = true;
             }
         }
