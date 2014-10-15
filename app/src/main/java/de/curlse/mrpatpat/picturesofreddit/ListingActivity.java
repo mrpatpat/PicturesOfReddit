@@ -131,7 +131,7 @@ public class ListingActivity extends Activity implements Callback<Listing>, Adap
      * binds the post list data to the gridview through an adapter
      */
     private void bindAdapter() {
-        // if (posts == null)
+        if (posts == null)
             posts = new ArrayList<Post>();
 
         gridView = (GridView) findViewById(R.id.gridView);
@@ -167,8 +167,9 @@ public class ListingActivity extends Activity implements Callback<Listing>, Adap
      * refreshes results
      */
     private void refresh() {
-        //TODO: not working
         mSwipeRefreshLayout.setRefreshing(true);
+        posts.clear();
+        adapter.notifyDataSetChanged();
         bindAdapter();
         load(subreddit, section);
     }
@@ -182,7 +183,6 @@ public class ListingActivity extends Activity implements Callback<Listing>, Adap
     public void success(Listing listing, Response response) {
 
         List<Child> children = listing.getData().getChildren();
-        List<Post> posts = new ArrayList<Post>();
 
         for (Child c : children) {
             Post p = c.getData();
