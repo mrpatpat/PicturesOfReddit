@@ -2,7 +2,11 @@ package de.curlse.mrpatpat.picturesofreddit;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
@@ -22,7 +26,7 @@ import retrofit.RetrofitError;
 import retrofit.client.Response;
 
 
-public class ListingActivity extends Activity implements Callback<Listing>, AdapterView.OnItemClickListener {
+public class ListingActivity extends Activity implements Callback<Listing>, AdapterView.OnItemClickListener, SwipeRefreshLayout.OnRefreshListener {
 
     /**
      * List of all Posts
@@ -55,6 +59,16 @@ public class ListingActivity extends Activity implements Callback<Listing>, Adap
     private String section;
 
     /**
+     * swipe 2 refresh
+     */
+    private SwipeRefreshLayout mSwipeRefreshLayout;
+
+    /**
+     * grid view
+     */
+    private GridView gridView;
+
+    /**
      * called on activity creation
      *
      * @param savedInstanceState saved Instance
@@ -63,18 +77,64 @@ public class ListingActivity extends Activity implements Callback<Listing>, Adap
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_listing);
+        initSwipeToRefresh();
         bindAdapter();
         load("earthporn", "hot");
+    }
+
+    /**
+     * called on menu creation
+     * @param menu
+     * @return
+     */
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main, menu);
+        return true;
+    }
+
+    /**
+     * on menu item click
+     *
+     * @param item
+     * @return
+     */
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            // action with ID action_refresh was selected
+            case R.id.action_refresh:
+                this.refresh();
+                break;
+            // action with ID action_settings was selected
+            case R.id.action_settings:
+                Toast.makeText(this, "Settings selected", Toast.LENGTH_SHORT)
+                        .show();
+                break;
+            default:
+                break;
+        }
+
+        return true;
+    }
+
+    /**
+     * swipe 2 refresh
+     */
+    private void initSwipeToRefresh() {
+        mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.s2rLayout);
+        mSwipeRefreshLayout.setOnRefreshListener(this);
     }
 
     /**
      * binds the post list data to the gridview through an adapter
      */
     private void bindAdapter() {
-        if (posts == null)
+        // if (posts == null)
             posts = new ArrayList<Post>();
 
-        GridView gridView = (GridView) findViewById(R.id.gridView);
+        gridView = (GridView) findViewById(R.id.gridView);
         gridView.setOnScrollListener(new EndlessScrollListener());
         adapter = new RedditGridAdapter(this, 0, posts);
         gridView.setAdapter(adapter);
@@ -107,6 +167,9 @@ public class ListingActivity extends Activity implements Callback<Listing>, Adap
      * refreshes results
      */
     private void refresh() {
+        //TODO: not working
+        mSwipeRefreshLayout.setRefreshing(true);
+        bindAdapter();
         load(subreddit, section);
     }
 
@@ -135,6 +198,7 @@ public class ListingActivity extends Activity implements Callback<Listing>, Adap
         this.lastPost = this.posts.get(this.posts.size() - 1);
 
         this.isDownloading = false;
+        this.mSwipeRefreshLayout.setRefreshing(false);
 
         adapter.notifyDataSetChanged();
     }
@@ -160,6 +224,14 @@ public class ListingActivity extends Activity implements Callback<Listing>, Adap
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int pos, long l) {
 
+    }
+
+    /**
+     * on swipe 2 refresh
+     */
+    @Override
+    public void onRefresh() {
+        this.refresh();
     }
 
     public class EndlessScrollListener implements AbsListView.OnScrollListener {
@@ -193,6 +265,11 @@ public class ListingActivity extends Activity implements Callback<Listing>, Adap
                 loadMore();
                 loading = true;
             }
+
+            int topRowVerticalPosition =
+                    (gridView == null || gridView.getChildCount() == 0) ?
+                            0 : gridView.getChildAt(0).getTop();
+            mSwipeRefreshLayout.setEnabled(topRowVerticalPosition >= 0);
         }
 
         @Override

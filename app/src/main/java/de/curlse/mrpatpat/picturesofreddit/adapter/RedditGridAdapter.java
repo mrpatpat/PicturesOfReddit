@@ -67,7 +67,7 @@ public class RedditGridAdapter extends ArrayAdapter<Post> {
         Post post = getItem(position);
 
         Glide.with(getContext())
-                .load(post.getThumbnail()).centerCrop().placeholder(R.drawable.loader)
+                .load(post.getThumbnail()).centerCrop().placeholder(R.drawable.ic_action_photo)
                 .into(holder.thumbnail);
 
         return view;
