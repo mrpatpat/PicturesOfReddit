@@ -2,15 +2,16 @@ package de.curlse.mrpatpat.picturesofreddit;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -19,6 +20,7 @@ import java.util.List;
 import de.curlse.mrpatpat.picturesofreddit.adapter.RedditGridAdapter;
 import de.curlse.mrpatpat.picturesofreddit.api.Post;
 import de.curlse.mrpatpat.picturesofreddit.api.RedditClient;
+import de.curlse.mrpatpat.picturesofreddit.listener.EndlessScrollListener;
 import de.curlse.mrpatpat.picturesofreddit.model.Child;
 import de.curlse.mrpatpat.picturesofreddit.model.Listing;
 import retrofit.Callback;
@@ -69,6 +71,16 @@ public class ListingActivity extends Activity implements Callback<Listing>, Adap
     private GridView gridView;
 
     /**
+     * drawer layout
+     */
+    private DrawerLayout mDrawerLayout;
+
+    /**
+     * drawer list
+     */
+    private ListView mDrawerList;
+
+    /**
      * called on activity creation
      *
      * @param savedInstanceState saved Instance
@@ -77,9 +89,22 @@ public class ListingActivity extends Activity implements Callback<Listing>, Adap
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_listing);
+        initDrawer();
         initSwipeToRefresh();
         bindAdapter();
         load("earthporn", "hot");
+    }
+
+    private void initDrawer() {
+
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        mDrawerList = (ListView) findViewById(R.id.left_drawer);
+
+        // Set the adapter for the list view
+        //mDrawerList.setAdapter(new ArrayAdapter<String>(this,
+        //      R.layout.drawer_list_item, mPlanetTitles));
+        // Set the list's click listener
+        //mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
     }
 
     /**
@@ -135,7 +160,7 @@ public class ListingActivity extends Activity implements Callback<Listing>, Adap
             posts = new ArrayList<Post>();
 
         gridView = (GridView) findViewById(R.id.gridView);
-        gridView.setOnScrollListener(new EndlessScrollListener());
+        gridView.setOnScrollListener(new EndlessScrollListener(this));
         adapter = new RedditGridAdapter(this, 0, posts);
         gridView.setAdapter(adapter);
         gridView.setOnItemClickListener(this);
@@ -156,7 +181,7 @@ public class ListingActivity extends Activity implements Callback<Listing>, Adap
     /**
      * loads more results
      */
-    private void loadMore() {
+    public void loadMore() {
         if(!isDownloading) {
             this.isDownloading = true;
             RedditClient.getRedditClient().getPostsAfter(subreddit, section, lastPost.getName(), this);
@@ -234,48 +259,12 @@ public class ListingActivity extends Activity implements Callback<Listing>, Adap
         this.refresh();
     }
 
-    public class EndlessScrollListener implements AbsListView.OnScrollListener {
-
-        private int visibleThreshold = 5;
-        private int currentPage = 0;
-        private int previousTotal = 0;
-        private boolean loading = true;
-
-        public EndlessScrollListener() {
-        }
-
-        public EndlessScrollListener(int visibleThreshold) {
-            this.visibleThreshold = visibleThreshold;
-        }
-
-        @Override
-        public void onScroll(AbsListView view, int firstVisibleItem,
-                             int visibleItemCount, int totalItemCount) {
-            if (loading) {
-                if (totalItemCount > previousTotal) {
-                    loading = false;
-                    previousTotal = totalItemCount;
-                    currentPage++;
-                }
-            }
-            if (!loading &&
-                    (totalItemCount - visibleItemCount) <= (firstVisibleItem + visibleThreshold)) {
-                // I load the next page of gigs using a background task,
-                // but you can call any function here.
-                loadMore();
-                loading = true;
-            }
-
-            int topRowVerticalPosition =
-                    (gridView == null || gridView.getChildCount() == 0) ?
-                            0 : gridView.getChildAt(0).getTop();
-            mSwipeRefreshLayout.setEnabled(topRowVerticalPosition >= 0);
-        }
-
-        @Override
-        public void onScrollStateChanged(AbsListView view, int scrollState) {
-
-
-        }
+    public GridView getGridView() {
+        return gridView;
     }
+
+    public SwipeRefreshLayout getSwipeRefreshLayout() {
+        return mSwipeRefreshLayout;
+    }
+
 }
