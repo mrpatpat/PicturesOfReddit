@@ -17,6 +17,7 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.curlse.mrpatpat.picturesofreddit.adapter.NavDrawerAdapter;
 import de.curlse.mrpatpat.picturesofreddit.adapter.RedditGridAdapter;
 import de.curlse.mrpatpat.picturesofreddit.api.Post;
 import de.curlse.mrpatpat.picturesofreddit.api.RedditClient;
@@ -100,15 +101,18 @@ public class ListingActivity extends Activity implements Callback<Listing>, Adap
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
 
-        // Set the adapter for the list view
-        //mDrawerList.setAdapter(new ArrayAdapter<String>(this,
-        //      R.layout.drawer_list_item, mPlanetTitles));
-        // Set the list's click listener
-        //mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
+        List<String> list = new ArrayList<String>();
+        list.add("adviceanimals");
+        list.add("earthporn");
+
+        NavDrawerAdapter navDrawerAdapter = new NavDrawerAdapter(this, R.layout.nav_drawer_element, list);
+        mDrawerList.setAdapter(navDrawerAdapter);
+        mDrawerList.setOnItemClickListener(navDrawerAdapter);
     }
 
     /**
      * called on menu creation
+     *
      * @param menu
      * @return
      */
@@ -167,13 +171,27 @@ public class ListingActivity extends Activity implements Callback<Listing>, Adap
     }
 
     /**
+     * load subreddit
+     */
+    public void load(String subreddit) {
+        if (this.subreddit != subreddit)
+            load(subreddit, this.section);
+    }
+
+    public void closeDrawer() {
+        this.mDrawerLayout.closeDrawers();
+    }
+
+    /**
      * loads a subreddit and section
      */
     private void load(String subreddit, String section) {
-        if(!isDownloading) {
+        if (!isDownloading) {
             this.isDownloading = true;
+            this.posts.clear();
             this.subreddit = subreddit;
             this.section = section;
+            this.gridView.setSelection(0);
             RedditClient.getRedditClient().getPosts(subreddit, section, this);
         }
     }
@@ -182,7 +200,7 @@ public class ListingActivity extends Activity implements Callback<Listing>, Adap
      * loads more results
      */
     public void loadMore() {
-        if(!isDownloading) {
+        if (!isDownloading) {
             this.isDownloading = true;
             RedditClient.getRedditClient().getPostsAfter(subreddit, section, lastPost.getName(), this);
         }
@@ -201,7 +219,8 @@ public class ListingActivity extends Activity implements Callback<Listing>, Adap
 
     /**
      * called when the request results are ready
-     * @param listing the result
+     *
+     * @param listing  the result
      * @param response the response
      */
     @Override
@@ -230,20 +249,22 @@ public class ListingActivity extends Activity implements Callback<Listing>, Adap
 
     /**
      * called when the API Request failed.
+     *
      * @param error the error
      */
     @Override
     public void failure(RetrofitError error) {
-        Toast.makeText(this,"Api Error",Toast.LENGTH_LONG).show();
-        Log.e("RETROFIT",error.getMessage());
+        Toast.makeText(this, "Api Error", Toast.LENGTH_LONG).show();
+        Log.e("RETROFIT", error.getMessage());
         this.isDownloading = false;
     }
 
     /**
      * called when an grid cell is clicked
+     *
      * @param adapterView adapterView
-     * @param view view
-     * @param pos position in the list
+     * @param view        view
+     * @param pos         position in the list
      * @param l
      */
     @Override

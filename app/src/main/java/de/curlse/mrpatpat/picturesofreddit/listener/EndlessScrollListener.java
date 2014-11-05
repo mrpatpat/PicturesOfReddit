@@ -10,7 +10,7 @@ import de.curlse.mrpatpat.picturesofreddit.ListingActivity;
 public class EndlessScrollListener implements AbsListView.OnScrollListener {
 
     private final ListingActivity activity;
-    private int visibleThreshold = 5;
+    private int visibleThreshold = 8;
     private int previousTotal = 0;
     private boolean loading = true;
 
